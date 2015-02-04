@@ -32,8 +32,9 @@ def parse_result(line):
                  'p_value': float,
                  'gene_id': str,
                  'omim_id': int,
-                 'orphanet_id': str,
+                 'orphanet_id': int,
                  'decipher_id': int,
+                 'any_id': int,
                  'mode_of_inheritance':str,
                  'description': str,
                  'raw_line': str
@@ -55,8 +56,13 @@ def parse_result(line):
     medical_litterature = result_line[2].split(':')
     if medical_litterature[0] == 'OMIM':
         result['omim_id'] = int(medical_litterature[1])
+        result['any_id'] = int(medical_litterature[1])
     elif medical_litterature[0] == 'DECIPHER':
         result['decipher_id'] = int(medical_litterature[1])
+        result['any_id'] = int(medical_litterature[1])
+    elif medical_litterature[0] == 'ORPHANET':
+        result['orphanet_id'] = int(medical_litterature[1])
+        result['any_id'] = int(medical_litterature[1])
     
     description = result_line[3]
     result['description'] = description
