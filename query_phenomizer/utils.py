@@ -113,14 +113,51 @@ def query(hpo_terms):
     
     return(parsed_terms)
 
+def validate_term(hpo_term):
+    """
+    Validate if the HPO term exists.
+    
+    Check if there are any result when querying phenomizer.
+    
+    Arguments:
+       hpo_term (string): Represents the hpo term
+    
+    Returns:
+        result (boolean): True if term exists, False otherwise
+    
+    """
+    
+    basic_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
+    questions = {'mobilequery':'true', 'terms':hpo_term}
+    result = True
+    try:
+        r = requests.get(basic_string, params=questions, timeout=10)
+    except requests.exceptions.Timeout:
+        result = False
+        
+    if not r.status_code == requests.codes.ok:
+        result = False
+    
+    return result
+    
 @click.command()
 @click.option('-t', '--hpo_term',
                 multiple=True,
                 help="Give hpo terms either on the form 'HP:0001623', or '0001623'"
 )
-def try_query(hpo_term):
+@click.option('-c', '--check_terms',
+                is_flag=True,
+                help="Check if the term(s) exist"
+)
+def try_query(hpo_term, check_terms):
     if not hpo_term:
         print("Please specify at least one hpo term with '-t/--hpo_term'.", file=sys.stderr)
+        sys.exit(0)
+    
+    if check_terms:
+        for term in hpo_term:
+            print(term)
+            print(validate_term(term))
         sys.exit()
     
     hpo_list = []

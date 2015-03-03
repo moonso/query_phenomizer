@@ -16,12 +16,16 @@ import click
 
 from pprint import pprint as pp
 
-from query_phenomizer import query
+from query_phenomizer import query, validate_term
 
 @click.command()
 @click.option('-t', '--hpo_term',
                 multiple=True,
                 help="Give hpo terms either on the form 'HP:0001623', or '0001623'"
+)
+@click.option('-c', '--check_terms',
+                is_flag=True,
+                help="Check if the term(s) exist"
 )
 @click.option('-o', '--output',
                     type=click.File('wb'),
@@ -36,7 +40,7 @@ from query_phenomizer import query
                 is_flag=True,
                 help='Increase output verbosity.'
 )
-def query_phenomizer(hpo_term, output, p_value_limit, verbose):
+def query_phenomizer(hpo_term, check_terms, output, p_value_limit, verbose):
     if not hpo_term:
         print("Please specify at least one hpo term with '-t/--hpo_term'.", file=sys.stderr)
         sys.exit()
@@ -47,18 +51,30 @@ def query_phenomizer(hpo_term, output, p_value_limit, verbose):
             term = ':'.join(['HP', term])
         hpo_list.append(term)
     
-    if not verbose:
+    if verbose:
         print("HPO terms used: %s." % ','.join(hpo_list) , file=sys.stderr)
+    
+    if check_terms:
+        for term in hpo_term:
+            if not validate_term(term):
+                print("HPO term : %s does not exist." % term , file=sys.stderr)
     
     results = query(hpo_list)
     
+    nr_significant_genes = 0
     for result in results:
         if result['p_value'] < p_value_limit:
+            nr_significant_genes += 1
             if output:
                 # print(result['raw_line'])
                 output.write(result['raw_line'] + '\n')
             else:
                 pp(result)
+    
+    if nr_significant_genes == 0:
+        if verbose:
+            print("There where no significant genes with p value < %s"
+                    % p_value_limit, file=sys.stderr)
 
 if __name__ == '__main__':
     query_phenomizer()
