@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="query_phenomizer",
-    version="0.1.1",
+    version="0.2",
     description = "Tool for query and parsing the phenomizer tool",
     # long_description = open( "README.md", "r" ).read( ),
     install_requires = [
