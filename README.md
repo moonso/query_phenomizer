@@ -16,3 +16,12 @@ or
 
     query_phenomizer --hpo_term HP:0001623 --hpo_term HP:0002465 --output genes.txt
 
+User can check if hpo terms exist by using the flag ```-c/--check_terms```.
+
+    query_phenomizer --hpo_term HP:0001623 --hpo_term HP:02345555 --output genes.txt --check_terms -v
+
+Prints that HP:02345555 does not exist.
+
+For more info run
+
+    query_phenomizer --help
