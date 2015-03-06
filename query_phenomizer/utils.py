@@ -51,21 +51,34 @@ def parse_result(line):
         'description': None,
         'raw_line': line
     }
-    result_line = line.rstrip().split('\t')
-    result['p_value'] = float(result_line[0])
-    medical_litterature = result_line[2].split(':')
-    if medical_litterature[0] == 'OMIM':
-        result['omim_id'] = int(medical_litterature[1])
-        result['any_id'] = int(medical_litterature[1])
-    elif medical_litterature[0] == 'DECIPHER':
-        result['decipher_id'] = int(medical_litterature[1])
-        result['any_id'] = int(medical_litterature[1])
-    elif medical_litterature[0] == 'ORPHANET':
-        result['orphanet_id'] = int(medical_litterature[1])
-        result['any_id'] = int(medical_litterature[1])
     
-    description = result_line[3]
-    result['description'] = description
+    result_line = line.rstrip().split('\t')
+    
+    try:
+        result['p_value'] = float(result_line[0])
+    except ValueError:
+        pass
+    
+    try:
+        medical_litterature = result_line[2].split(':')
+        if medical_litterature[0] == 'OMIM':
+            result['omim_id'] = int(medical_litterature[1])
+            result['any_id'] = int(medical_litterature[1])
+        elif medical_litterature[0] == 'DECIPHER':
+            result['decipher_id'] = int(medical_litterature[1])
+            result['any_id'] = int(medical_litterature[1])
+        elif medical_litterature[0] == 'ORPHANET':
+            result['orphanet_id'] = int(medical_litterature[1])
+            result['any_id'] = int(medical_litterature[1])
+    except IndexError:
+        pass
+    
+    try:
+        description = result_line[3]
+        result['description'] = description
+    except IndexError:
+        pass
+    
     try:
         gene_id = result_line[4]
         result['gene_id'] = gene_id
