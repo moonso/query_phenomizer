@@ -8,7 +8,7 @@ Command line script for query phenomizer database.
 Created by Måns Magnusson on 2015-02-02.
 Copyright (c) 2015 __MoonsoInc__. All rights reserved.
 """
-from __future__ import print_function, unicode_literals
+from __future__ import print_function
 
 import sys
 import os
