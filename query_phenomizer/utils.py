@@ -8,16 +8,15 @@ query phenomizer and store the results in a ordered dictionary.
 Created by Måns Magnusson on 2015-02-02.
 Copyright (c) 2015 __MoonsoInc__. All rights reserved.
 """
-from __future__ import print_function, unicode_literals
+from __future__ import print_function
 
+import logging
 import sys
 import os
 import click
 import requests
 
 from pprint import pprint as pp
-
-
 
 def parse_result(line):
     """
@@ -106,18 +105,10 @@ def query(hpo_terms):
     try:
         r = requests.get(basic_string, params=questions, timeout=10)
     except requests.exceptions.Timeout:
-        print("The request timed out." ,
-                file=sys.stderr)
-        print("Exiting...",
-                file=sys.stderr)
-        sys.exit(1)
+        raise RuntimeError("The request timed out.")
         
     if not r.status_code == requests.codes.ok:
-        print("Phenomizer returned a bad status code: %s" % r.status_code,
-                file=sys.stderr)
-        print("Exiting...",
-                file=sys.stderr)
-        sys.exit(1)
+        raise RuntimeError("Phenomizer returned a bad status code: %s" % r.status_code)
     
     r.encoding = 'utf-8'
     
@@ -153,36 +144,3 @@ def validate_term(hpo_term):
     
     return result
     
-@click.command()
-@click.option('-t', '--hpo_term',
-                multiple=True,
-                help="Give hpo terms either on the form 'HP:0001623', or '0001623'"
-)
-@click.option('-c', '--check_terms',
-                is_flag=True,
-                help="Check if the term(s) exist"
-)
-def try_query(hpo_term, check_terms):
-    if not hpo_term:
-        print("Please specify at least one hpo term with '-t/--hpo_term'.", file=sys.stderr)
-        sys.exit(0)
-    
-    if check_terms:
-        for term in hpo_term:
-            print(term)
-            print(validate_term(term))
-        sys.exit()
-    
-    hpo_list = []
-    for term in hpo_term:
-        if len(term.split(':')) < 2:
-            term = ':'.join(['HP', term])
-        hpo_list.append(term)
-    
-    results = query(hpo_list)
-    for result in results:
-        pp(result)
-
-if __name__ == '__main__':
-    try_query()
-
