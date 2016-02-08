@@ -51,7 +51,8 @@ def parse_result(line):
         'raw_line': line
     }
     
-    result_line = line.rstrip().split('\t')
+    result_line = line.decode('UTF-8')
+    result_line = result_line.rstrip().split('\t')
     
     try:
         result['p_value'] = float(result_line[0])
