@@ -87,22 +87,20 @@ def parse_result(line):
     
     return result
 
-def query(hpo_terms):
+def query_phenomizer(usr, pwd, hpo_terms):
     """
     Query the phenomizer web tool
     
     Arguments:
+        usr (str): A username for phenomizer
+        pwd (str): A password for phenomizer
         hpo_terms (list): A list with hpo terms
     
     Returns:
-        parsed_terms (list): A list with the parsed HPO terms
-     
+        raw_answer : The raw result from phenomizer
     """
-    
-    parsed_terms = []
-    
     basic_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
-    questions = {'mobilequery':'true', 'terms':','.join(hpo_terms)}
+    questions = {'mobilequery':'true', 'terms':','.join(hpo_terms), 'username':usr, 'password':pwd}
     try:
         r = requests.get(basic_string, params=questions, timeout=10)
     except requests.exceptions.Timeout:
@@ -113,18 +111,39 @@ def query(hpo_terms):
     
     r.encoding = 'utf-8'
     
-    for line in r.iter_lines():
-        parsed_terms.append(parse_result(line))
+    return r
+
+def query(usr, pwd, hpo_terms):
+    """
+    Query the phenomizer web tool
+    
+    Arguments:
+        usr (str): A username for phenomizer
+        pwd (str): A password for phenomizer
+        hpo_terms (list): A list with hpo terms
+    
+    Returns:
+        parsed_terms (list): A list with the parsed HPO terms
+     
+    """
+    
+    raw_result = query_phenomizer(usr, pwd, hpo_terms)
+    
+    parsed_terms = (parse_result(line) for line in raw_result.iter_lines())
+    # for line in raw_result.iter_lines():
+    #     parsed_terms.append(parse_result(line))
     
     return(parsed_terms)
 
-def validate_term(hpo_term):
+def validate_term(usr, pwd, hpo_terms):
     """
     Validate if the HPO term exists.
     
     Check if there are any result when querying phenomizer.
     
     Arguments:
+        usr (str): A username for phenomizer
+        pwd (str): A password for phenomizer
        hpo_term (string): Represents the hpo term
     
     Returns:
@@ -132,15 +151,10 @@ def validate_term(hpo_term):
     
     """
     
-    basic_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
-    questions = {'mobilequery':'true', 'terms':hpo_term}
     result = True
     try:
-        r = requests.get(basic_string, params=questions, timeout=10)
-    except requests.exceptions.Timeout:
-        result = False
-        
-    if not r.status_code == requests.codes.ok:
+        query_phenomizer(usr, pwd, [hpo_terms])
+    except RuntimeError as err:
         result = False
     
     return result

@@ -20,10 +20,23 @@ from .log import (configure_stream, LEVELS)
 
 logger = logging.getLogger(__name__)
 
+def test_args(*args):
+    """docstring for test_args"""
+    for arg in args:
+        print(arg)
+
 @click.command()
 @click.option('-t', '--hpo_term',
         multiple=True,
         help="Give hpo terms either on the form 'HP:0001623', or '0001623'"
+)
+@click.option('-u', '--username',
+        type=str,
+        help="A username for phenomizer"
+)
+@click.option('-p', '--password',
+        type=str,
+        help="A password for phenomizer"
 )
 @click.option('-c', '--check_terms',
         is_flag=True,
@@ -33,9 +46,10 @@ logger = logging.getLogger(__name__)
         type=click.File('wb'),
         help="Specify the path to a file for storing the phenomizer output."
 )
-@click.option('-p', '--p_value_limit',
+@click.option('--p_value_limit',
         nargs=1,
         default=1.0,
+        show_default=True,
         help='Specify the highest p-value that you want included.'
 )
 @click.option('-v', '--verbose',
@@ -43,12 +57,17 @@ logger = logging.getLogger(__name__)
         default=2
 )
 @click.pass_context
-def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose):
+def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username, password):
     loglevel = LEVELS.get(min(verbose, 3))
     configure_stream(level=loglevel)
     
     if not hpo_term:
         logger.warning("Please specify at least one hpo term with '-t/--hpo_term'.")
+        ctx.abort()
+
+    if not (username and password):
+        logger.warning("Please a username and a password.")
+        logger.warning("Contact sebastian.koehler@charite.de.")
         ctx.abort()
     
     hpo_list = []
@@ -61,14 +80,14 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose):
     
     if check_terms:
         for term in hpo_list:
-            if not validate_term(term):
+            if not validate_term(username, password, term):
                 logger.info("HPO term : {0} does not exist".format(term))
             else:
                 logger.info("HPO term : {0} does exist!".format(term))
     
     else:
         try:
-            results = query(hpo_list)
+            results = query(username, password, hpo_list)
         except RuntimeError as e:
             logger.error(e.message)
             ctx.abort()

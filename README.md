@@ -3,6 +3,11 @@
 
 A small module for querying the [phenomizer tool](http://compbio.charite.de/phenomizer/) with HPO-terms.
 
+# INFO!!! #
+
+From 16/2-16 phenomizer demands a password and username when using the service in this way.
+Request login credentials from sebastian.koehler@charite.de
+
 ## Installation ##
 
     pip install query_phenomizer
