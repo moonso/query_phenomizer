@@ -52,7 +52,7 @@ setup(
     # Versions should comply with PEP440. For a discussion on
     # single-sourcing the version across setup.py and the project code,
     # see http://packaging.python.org/en/latest/tutorial.html#version
-    version="0.4",
+    version="0.5",
 
     description = "Tool for query and parsing the phenomizer tool",
     long_description=parse_readme(),
