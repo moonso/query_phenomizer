@@ -37,7 +37,7 @@ def test_args(*args):
         type=str,
         help="A password for phenomizer"
 )
-@click.option('-c', '--check_terms',
+@click.option('-c', '--check-terms',
         is_flag=True,
         help="Check if the term(s) exist"
 )
@@ -45,7 +45,7 @@ def test_args(*args):
         type=click.File('wb'),
         help="Specify the path to a file for storing the phenomizer output."
 )
-@click.option('--p_value_limit',
+@click.option('--p-value-limit',
         default=1.0,
         show_default=True,
         help='Specify the highest p-value that you want included.'
@@ -90,36 +90,22 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
                 logger.info("HPO term : {0} does exist!".format(term))
         ctx.abort()
     else:
-        click.echo("{0}\t{1}\t{2}\t{3}".format(
-            'p_value', 'disease', 'description', 'genes'
-        ))
         try:
             for result in query(username, password, *hpo_list):
                 if to_json:
                     click.echo(json.dumps(result))
                 else:
-                    click.echo("{0}\t{1}:{2}\t{3}\t{4}".format(
+                    print_string = "{0}\t{1}:{2}\t{3}\t{4}".format(
                         result['p_value'], 
                         result['disease_source'],
                         result['disease_nr'],
                         result['description'],
                         ','.join(result['gene_symbols'])
-                    ))
+                    )
+                    p_value = result['p_value']
+                    if p_value <= p_value_limit:
+                        click.echo(print_string)
                 
         except RuntimeError as e:
             logger.error(e.message)
             ctx.abort()
-        
-        # nr_significant_genes = 0
-        # for result in results:
-        #     if result['p_value'] < p_value_limit:
-        #         nr_significant_genes += 1
-        #         if output:
-        #             output.write(result['raw_line'] + '\n')
-        #         else:
-        #             print(json.dumps(result))
-        #
-        # if nr_significant_genes == 0:
-        #     logger.info("There where no significant genes with p value"\
-        #                 " < {0}".format(p_value_limit))
-
