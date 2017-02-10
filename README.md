@@ -20,11 +20,11 @@ pip install --editable .
 ```
 ##Usage##
 
-    query_phenomizer --hpo_term HP:0001623 --hpo_term HP:0002465 --output genes.txt
+    query_phenomizer HP:0001623 HP:0002465 --output phenitypes.txt
 
 User can check if hpo terms exist by using the flag ```-c/--check_terms```.
 
-    query_phenomizer --hpo_term HP:0001623 --hpo_term HP:02345555 --output genes.txt --check_terms -v
+    query_phenomizer HP:0001623 HP:02345555 --check_terms -v
 
 Prints that HP:02345555 does not exist.
 

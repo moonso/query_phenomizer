@@ -28,66 +28,52 @@ def parse_result(line):
     Returns:
          result (dict): A dictionary with the phenomizer info:
              {
-                 'p_value': float,
-                 'gene_id': str,
-                 'omim_id': int,
-                 'orphanet_id': int,
-                 'decipher_id': int,
-                 'any_id': int,
-                 'mode_of_inheritance':str,
-                 'description': str,
-                 'raw_line': str
+                'p_value': float,
+                'gene_symbols': list(str),
+                'disease_nr': int,
+                'disease_source': str,
+                'description': str,
+                'raw_line': str
              }
              
     """
     result = {
         'p_value': None,
-        'gene_id': None,
-        'omim_id': None,
-        'orphanet_id': None,
-        'decipher_id': None,
-        'mode_of_inheritance':None,
+        'gene_symbols': [],
+        'disease_nr': None,
+        'disease_source': None,
         'description': None,
         'raw_line': line
     }
     
-    result_line = line.decode('UTF-8')
-    result_line = result_line.rstrip().split('\t')
+    result['raw_line'] = line.rstrip()
+    result_line = line.rstrip().split('\t')
     
     try:
         result['p_value'] = float(result_line[0])
     except ValueError:
         pass
-    
+
     try:
         medical_litterature = result_line[2].split(':')
-        if medical_litterature[0] == 'OMIM':
-            result['omim_id'] = int(medical_litterature[1])
-            result['any_id'] = int(medical_litterature[1])
-        elif medical_litterature[0] == 'DECIPHER':
-            result['decipher_id'] = int(medical_litterature[1])
-            result['any_id'] = int(medical_litterature[1])
-        elif medical_litterature[0] == 'ORPHANET':
-            result['orphanet_id'] = int(medical_litterature[1])
-            result['any_id'] = int(medical_litterature[1])
+        result['disease_source'] = medical_litterature[0]
+        result['disease_nr'] = int(medical_litterature[1])
     except IndexError:
         pass
-    
+
     try:
         description = result_line[3]
         result['description'] = description
     except IndexError:
         pass
-    
-    try:
-        gene_id = result_line[4]
-        result['gene_id'] = gene_id
-    except IndexError:
-        pass
-    
+
+    if len(result_line) > 4:
+        for gene_symbol in result_line[4].split(','):
+            result['gene_symbols'].append(gene_symbol.strip())
+
     return result
 
-def query_phenomizer(usr, pwd, hpo_terms):
+def query_phenomizer(usr, pwd,  *hpo_terms):
     """
     Query the phenomizer web tool
     
@@ -99,10 +85,10 @@ def query_phenomizer(usr, pwd, hpo_terms):
     Returns:
         raw_answer : The raw result from phenomizer
     """
-    basic_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
+    base_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
     questions = {'mobilequery':'true', 'terms':','.join(hpo_terms), 'username':usr, 'password':pwd}
     try:
-        r = requests.get(basic_string, params=questions, timeout=10)
+        r = requests.get(base_string, params=questions, timeout=10)
     except requests.exceptions.Timeout:
         raise RuntimeError("The request timed out.")
         
@@ -113,7 +99,7 @@ def query_phenomizer(usr, pwd, hpo_terms):
     
     return r
 
-def query(usr, pwd, hpo_terms):
+def query(usr, pwd, *hpo_terms):
     """
     Query the phenomizer web tool
     
@@ -122,20 +108,20 @@ def query(usr, pwd, hpo_terms):
         pwd (str): A password for phenomizer
         hpo_terms (list): A list with hpo terms
     
-    Returns:
-        parsed_terms (list): A list with the parsed HPO terms
+    yields:
+        parsed_term (dict): A dictionary with the parsed information
+                            from phenomizer
      
     """
+    raw_result = query_phenomizer(usr, pwd, *hpo_terms)
     
-    raw_result = query_phenomizer(usr, pwd, hpo_terms)
+    for line in raw_result.text.split('\n'):
+        if len(line) > 1:
+            if not line.startswith('#'):
+                yield parse_result(line)
     
-    parsed_terms = (parse_result(line) for line in raw_result.iter_lines())
-    # for line in raw_result.iter_lines():
-    #     parsed_terms.append(parse_result(line))
-    
-    return(parsed_terms)
 
-def validate_term(usr, pwd, hpo_terms):
+def validate_term(usr, pwd, hpo_term):
     """
     Validate if the HPO term exists.
     
@@ -153,7 +139,7 @@ def validate_term(usr, pwd, hpo_terms):
     
     result = True
     try:
-        query_phenomizer(usr, pwd, [hpo_terms])
+        query_phenomizer(usr, pwd, hpo_term)
     except RuntimeError as err:
         result = False
     
