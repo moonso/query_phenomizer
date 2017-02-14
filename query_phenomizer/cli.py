@@ -70,7 +70,7 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         ctx.abort()
 
     if not (username and password):
-        logger.info("Please a username and a password.")
+        logger.info("Please specify username with -u and password with -p.")
         logger.info("Contact sebastian.koehler@charite.de.")
         ctx.abort()
     
@@ -84,10 +84,14 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
     
     if check_terms:
         for term in hpo_list:
-            if not validate_term(username, password, term):
-                logger.info("HPO term : {0} does not exist".format(term))
-            else:
-                logger.info("HPO term : {0} does exist!".format(term))
+            try:
+                if not validate_term(username, password, term):
+                    logger.info("HPO term : {0} does not exist".format(term))
+                else:
+                    logger.info("HPO term : {0} does exist!".format(term))
+            except RuntimeError as err:
+                click.echo(err)
+                ctx.abort()
         ctx.abort()
     else:
         try:
@@ -107,5 +111,5 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
                         click.echo(print_string)
                 
         except RuntimeError as e:
-            logger.error(e.message)
+            click.echo(e)
             ctx.abort()

@@ -37,6 +37,10 @@ def parse_result(line):
              }
              
     """
+    
+    if line.startswith("Problem"):
+        raise RuntimeError("Login credentials seems to be wrong")
+
     result = {
         'p_value': None,
         'gene_symbols': [],
@@ -139,9 +143,10 @@ def validate_term(usr, pwd, hpo_term):
     
     result = True
     try:
-        query_phenomizer(usr, pwd, hpo_term)
+        for line in query(usr, pwd, hpo_term):
+            pass
     except RuntimeError as err:
-        result = False
+        raise err
     
     return result
     
