@@ -63,7 +63,9 @@ def test_args(*args):
 @click.pass_context
 def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username, 
         password, to_json):
-    "Give hpo terms either on the form 'HP:0001623', or '0001623'"    
+    """Give hpo terms either on the form 'HP:0001623', or '0001623'.
+
+    If -p is not used, a password prompt will appear instead."""
     loglevel = LEVELS.get(min(verbose, 3))
     configure_stream(level=loglevel)
     
