@@ -16,6 +16,8 @@ import json
 
 from query_phenomizer import query, validate_term
 
+from getpass import getpass
+
 from .log import (configure_stream, LEVELS)
 
 logger = logging.getLogger(__name__)
@@ -69,10 +71,13 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         logger.info("Please specify at least one hpo term with '-t/--hpo_term'.")
         ctx.abort()
 
-    if not (username and password):
+    if not username:
         logger.info("Please specify username with -u and password with -p.")
         logger.info("Contact sebastian.koehler@charite.de.")
         ctx.abort()
+
+    if not password:
+        password = getpass("password:")
     
     hpo_list = []
     for term in hpo_term:
