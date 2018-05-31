@@ -68,3 +68,6 @@ node_modules/
 
 # mkdocs
 site/
+
+# PyCharm files.
+.idea/
