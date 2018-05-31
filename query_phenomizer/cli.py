@@ -104,7 +104,8 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
     else:
         try:
             if output:
-                output.write("p-value\tdisease-id\tdisease-name\tgene-symbols")
+                header = "p-value\tdisease-id\tdisease-name\tgene-symbols" + linesep  # The file header.
+                output.write(header.encode())  # "a bytes-like object is required"
             for result in query(username, password, *hpo_list):
                 if to_json:
                     click.echo(json.dumps(result))
