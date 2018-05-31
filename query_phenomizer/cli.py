@@ -14,6 +14,7 @@ import logging
 import click
 import json
 
+from os import linesep
 from query_phenomizer import query, validate_term
 
 from getpass import getpass
@@ -102,12 +103,14 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         ctx.abort()
     else:
         try:
+            if output:
+                output.write("p-value\tdisease-id\tdisease-name\tgene-symbols")
             for result in query(username, password, *hpo_list):
                 if to_json:
                     click.echo(json.dumps(result))
                 else:
-                    print_string = "{0}\t{1}:{2}\t{3}\t{4}".format(
-                        result['p_value'], 
+                    print_string = '{0}\t{1}:{2}\t"{3}"\t{4}'.format(
+                        result['p_value'],
                         result['disease_source'],
                         result['disease_nr'],
                         result['description'],
@@ -115,7 +118,11 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
                     )
                     p_value = result['p_value']
                     if p_value <= p_value_limit:
-                        click.echo(print_string)
+                        if output:
+                            print_string += linesep  # Adds line separator to output.
+                            output.write(print_string.encode())  # "a bytes-like object is required"
+                        else:
+                            click.echo(print_string)
                 
         except RuntimeError as e:
             click.echo(e)
