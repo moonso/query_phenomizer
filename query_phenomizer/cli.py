@@ -75,7 +75,7 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         ctx.abort()
 
     if not username:
-        logger.info("Please specify username with -u and password with -p.")
+        logger.info("Please specify username with -u (and password with -p).")
         logger.info("Contact sebastian.koehler@charite.de.")
         ctx.abort()
 
