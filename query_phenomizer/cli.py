@@ -128,3 +128,7 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         except RuntimeError as e:
             click.echo(e)
             ctx.abort()
+        finally:
+            if output:
+                output.flush()
+                output.close()
