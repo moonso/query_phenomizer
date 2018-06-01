@@ -14,7 +14,10 @@ import logging
 import click
 import json
 
+from os import linesep
 from query_phenomizer import query, validate_term
+
+from getpass import getpass
 
 from .log import (configure_stream, LEVELS)
 
@@ -61,7 +64,9 @@ def test_args(*args):
 @click.pass_context
 def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username, 
         password, to_json):
-    "Give hpo terms either on the form 'HP:0001623', or '0001623'"    
+    """Give hpo terms either on the form 'HP:0001623', or '0001623'.
+
+    If -p is not used, a password prompt will appear instead."""
     loglevel = LEVELS.get(min(verbose, 3))
     configure_stream(level=loglevel)
     
@@ -69,10 +74,13 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         logger.info("Please specify at least one hpo term with '-t/--hpo_term'.")
         ctx.abort()
 
-    if not (username and password):
-        logger.info("Please specify username with -u and password with -p.")
+    if not username:
+        logger.info("Please specify username with -u (and password with -p).")
         logger.info("Contact sebastian.koehler@charite.de.")
         ctx.abort()
+
+    if not password:
+        password = getpass("password:")
     
     hpo_list = []
     for term in hpo_term:
@@ -95,12 +103,15 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
         ctx.abort()
     else:
         try:
+            if output:
+                header = "p-value\tdisease-id\tdisease-name\tgene-symbols" + linesep  # The file header.
+                output.write(header.encode())  # "a bytes-like object is required"
             for result in query(username, password, *hpo_list):
                 if to_json:
                     click.echo(json.dumps(result))
                 else:
                     print_string = "{0}\t{1}:{2}\t{3}\t{4}".format(
-                        result['p_value'], 
+                        result['p_value'],
                         result['disease_source'],
                         result['disease_nr'],
                         result['description'],
@@ -108,8 +119,16 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
                     )
                     p_value = result['p_value']
                     if p_value <= p_value_limit:
-                        click.echo(print_string)
+                        if output:
+                            print_string += linesep  # Adds line separator to output.
+                            output.write(print_string.encode())  # "a bytes-like object is required"
+                        else:
+                            click.echo(print_string)
                 
         except RuntimeError as e:
             click.echo(e)
             ctx.abort()
+        finally:
+            if output:
+                output.flush()
+                output.close()
