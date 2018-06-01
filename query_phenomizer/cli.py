@@ -110,7 +110,7 @@ def cli(ctx, hpo_term, check_terms, output, p_value_limit, verbose, username,
                 if to_json:
                     click.echo(json.dumps(result))
                 else:
-                    print_string = '{0}\t{1}:{2}\t"{3}"\t{4}'.format(
+                    print_string = '{0}\t{1}:{2}\t{3}\t{4}'.format(
                         result['p_value'],
                         result['disease_source'],
                         result['disease_nr'],
