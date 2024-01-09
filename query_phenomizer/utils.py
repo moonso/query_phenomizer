@@ -89,10 +89,10 @@ def query_phenomizer(usr, pwd,  *hpo_terms):
     Returns:
         raw_answer : The raw result from phenomizer
     """
-    base_string = 'http://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
+    base_string = 'https://compbio.charite.de/phenomizer/phenomizer/PhenomizerServiceURI'
     questions = {'mobilequery':'true', 'terms':','.join(hpo_terms), 'username':usr, 'password':pwd}
     try:
-        r = requests.get(base_string, params=questions, timeout=10)
+        r = requests.get(base_string, params=questions, verify=False, timeout=10)
     except requests.exceptions.Timeout:
         raise RuntimeError("The request timed out.")
         
